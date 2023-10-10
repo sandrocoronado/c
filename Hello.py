@@ -51,6 +51,16 @@ def run():
         # Filter the dataframe based on the selected country
         filtered_df = result_df[result_df['IDEtapa'] == selected_country]
 
+        # Create dataframes for the plots
+        df_monto_acumulado = filtered_df.groupby('Ano')["Monto Acumulado"].last().reset_index()
+        df_porcentaje_monto_acumulado = filtered_df.groupby('Ano')["Porcentaje del Monto Acumulado"].last().reset_index()
+
+        # Concatenate the dataframes into a single dataframe
+        combined_df = pd.concat([df_monto_acumulado, df_porcentaje_monto_acumulado["Porcentaje del Monto Acumulado"]], axis=1)
+
+        # Display the combined dataframe in Streamlit
+        st.write(combined_df)
+
         # Plot the Monto Acumulado over the years using Altair
         data_to_plot = filtered_df.groupby('Ano')["Monto Acumulado"].last().reset_index()
 
