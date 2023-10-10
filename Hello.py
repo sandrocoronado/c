@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 from streamlit.logger import get_logger
-import matplotlib.pyplot as plt
 import altair as alt
 
 LOGGER = get_logger(__name__)
