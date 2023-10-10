@@ -6,8 +6,8 @@ import altair as alt
 LOGGER = get_logger(__name__)
 
 def process_dataframe(xls_path):
-    # Cargar el archivo Excel
-    xls = pd.ExcelFile(xls_path)
+    # Cargar el archivo Excel especificando el motor 'openpyxl'
+    xls = pd.ExcelFile(xls_path, engine='openpyxl')
     desembolsos = xls.parse('Desembolsos')
     operaciones = xls.parse('Operaciones')
 
