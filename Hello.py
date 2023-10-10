@@ -40,7 +40,7 @@ def run():
     st.write("Bienvenido aquí analizaremos tus Datos! 👋")
 
     # Load the Excel file using Streamlit
-    uploaded_file = st.file_uploader("Carga tu Excel", type="xlsx")
+    uploaded_file = st.file_uploader("Carga tu Excel aquí", type="xlsx")
     if uploaded_file:
         result_df = process_dataframe(uploaded_file)
         st.write(result_df)
