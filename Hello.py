@@ -2,10 +2,9 @@ import streamlit as st
 import pandas as pd
 from streamlit.logger import get_logger
 import altair as alt
-
-LOGGER = get_logger(__name__)
 import threading
 
+LOGGER = get_logger(__name__)
 _lock = threading.Lock()
 
 def process_dataframe(xls_path):
@@ -28,12 +27,18 @@ def process_dataframe(xls_path):
     result_df['Porcentaje del Monto'] = result_df.groupby(['IDEtapa'])['Monto'].apply(lambda x: x / x.sum() * 100).reset_index(drop=True)
     result_df['Porcentaje del Monto Acumulado'] = result_df.groupby(['IDEtapa'])['Monto Acumulado'].apply(lambda x: x / x.max() * 100).reset_index(drop=True)
 
+    # Calcular Monto Total por IDEtapa
+    total_monto_per_etapa = merged_df.groupby('IDEtapa')['Monto'].sum().reset_index()
+    total_monto_per_etapa.rename(columns={'Monto': 'Monto Total IDEtapa'}, inplace=True)
+
+    # Unir el monto total al dataframe result_df
+    result_df = pd.merge(result_df, total_monto_per_etapa, on='IDEtapa', how='left')
+
     # Asignar países
     country_map = {'AR': 'Argentina', 'BO': 'Bolivia', 'BR': 'Brasil', 'PY': 'Paraguay', 'UR': 'Uruguay'}
     result_df['Pais'] = result_df['IDEtapa'].str[:2].map(country_map).fillna('Desconocido')
     
     return result_df
-
 
 def run():
     st.set_page_config(
