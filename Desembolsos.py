@@ -40,10 +40,12 @@ def run():
         page_icon="👋",
     )
 
-    st.write("Bienvenido aquí analizaremos tus Datos! 👋")
+    st.title("Análisis de Desembolsos 👋")
+    st.write("Carga tu archivo Excel y explora las métricas relacionadas con los desembolsos.")
 
     # Load the Excel file using Streamlit
     uploaded_file = st.file_uploader("Carga tu Excel aquí", type="xlsx")
+    
     if uploaded_file:
         result_df = process_dataframe(uploaded_file)
         st.write(result_df)
@@ -59,10 +61,12 @@ def run():
         df_monto_acumulado = filtered_df.groupby('Ano')["Monto Acumulado"].last().reset_index()
         df_porcentaje_monto_acumulado = filtered_df.groupby('Ano')["Porcentaje del Monto Acumulado"].last().reset_index()
         df_porcentaje_monto_acumulado["Porcentaje del Monto Acumulado"] = df_porcentaje_monto_acumulado["Porcentaje del Monto Acumulado"].round(2)
+
         # Concatenate the dataframes into a single dataframe
         combined_df = pd.concat([df_monto, df_monto_acumulado["Monto Acumulado"], df_porcentaje_monto_acumulado["Porcentaje del Monto Acumulado"]], axis=1)
 
         # Display the combined dataframe in Streamlit
+        st.write("Resumen de Datos:")
         st.write(combined_df)
 
         # Plot for Monto
@@ -75,7 +79,7 @@ def run():
             width=600,
             height=400
         )
-        st.altair_chart(chart_monto)
+        st.altair_chart(chart_monto, use_container_width=True)
 
         # Plot for Monto Acumulado
         chart_monto_acumulado = alt.Chart(df_monto_acumulado).mark_line(point=True, color='purple').encode(
@@ -87,7 +91,7 @@ def run():
             width=600,
             height=400
         )
-        st.altair_chart(chart_monto_acumulado)
+        st.altair_chart(chart_monto_acumulado, use_container_width=True)
 
         # Plot for Porcentaje del Monto Acumulado
         chart_porcentaje = alt.Chart(df_porcentaje_monto_acumulado).mark_line(point=True, color='green').encode(
@@ -99,16 +103,11 @@ def run():
             width=600,
             height=400
         )
-        st.write("Resumen de Datos:")
-        st.write(combined_df)
-
-        st.write("Visualizaciones:")
-        st.altair_chart(chart_monto, use_container_width=True)
-        st.altair_chart(chart_monto_acumulado, use_container_width=True)
         st.altair_chart(chart_porcentaje, use_container_width=True)
 
     st.sidebar.info("Selecciona un proyecto para visualizar las métricas.")
 
 if __name__ == "__main__":
     run()
+
 
