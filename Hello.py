@@ -55,7 +55,6 @@ def run():
         filtered_df = result_df[result_df['IDEtapa'] == selected_country]
 
         # Create dataframes for the plots
-        
         df_monto_acumulado = filtered_df.groupby('Ano')["Monto Acumulado"].last().reset_index()
         df_porcentaje_monto_acumulado = filtered_df.groupby('Ano')["Porcentaje del Monto Acumulado"].last().reset_index()
 
@@ -82,14 +81,14 @@ def run():
         st.altair_chart(chart)
         # Plot the Monto Acumulado over the years using Altair
         data_to_plot = filtered_df.groupby('Ano')["Porcentaje del Monto Acumulado"].last().reset_index()
-        chart = alt.Chart(data_to_plot).mark_line(point=True, color = "red").encode(
+        chart = alt.Chart(data_to_plot).mark_line(point=True).encode(
             x=alt.X('Ano:O',  # Tratamos 'Ano' como ordinal
             axis=alt.Axis(title='Año', labelAngle=0)  # Aquí ajustamos el ángulo de las etiquetas a 0
            ),
             y='Porcentaje del Monto Acumulado:Q',
             tooltip=['Ano', 'Porcentaje del Monto Acumulado']
         ).properties(
-            title=f'Porcentaje del Monto Acumulado a través de los años para {selected_country}',
+            title=f'Monto Acumulado a través de los años para {selected_country}',
             width=600,
             height=400
         )
