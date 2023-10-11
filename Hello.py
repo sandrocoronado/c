@@ -55,12 +55,12 @@ def run():
         filtered_df = result_df[result_df['IDEtapa'] == selected_country]
 
         # Create dataframes for the plots
-        df_monto = filtered_df.groupby('Ano')["Monto"].last().reset_index()
+        
         df_monto_acumulado = filtered_df.groupby('Ano')["Monto Acumulado"].last().reset_index()
         df_porcentaje_monto_acumulado = filtered_df.groupby('Ano')["Porcentaje del Monto Acumulado"].last().reset_index()
 
         # Concatenate the dataframes into a single dataframe
-        combined_df = pd.concat([df_monto, df_monto_acumulado, df_porcentaje_monto_acumulado["Porcentaje del Monto Acumulado"]], axis=1)
+        combined_df = pd.concat([df_monto_acumulado, df_porcentaje_monto_acumulado["Porcentaje del Monto Acumulado"]], axis=1)
 
         # Display the combined dataframe in Streamlit
         st.write(combined_df)
@@ -82,7 +82,7 @@ def run():
         st.altair_chart(chart)
         # Plot the Monto Acumulado over the years using Altair
         data_to_plot = filtered_df.groupby('Ano')["Porcentaje del Monto Acumulado"].last().reset_index()
-        chart = alt.Chart(data_to_plot).mark_line(point=True).encode(
+        chart = alt.Chart(data_to_plot).mark_line(point=True, color = "red").encode(
             x=alt.X('Ano:O',  # Tratamos 'Ano' como ordinal
             axis=alt.Axis(title='Año', labelAngle=0)  # Aquí ajustamos el ángulo de las etiquetas a 0
            ),
