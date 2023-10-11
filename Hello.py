@@ -4,12 +4,16 @@ from streamlit.logger import get_logger
 import altair as alt
 
 LOGGER = get_logger(__name__)
+import threading
+
+_lock = threading.Lock()
 
 def process_dataframe(xls_path):
-    # Cargar el archivo Excel especificando el motor 'openpyxl'
-    xls = pd.ExcelFile(xls_path, engine='openpyxl')
-    desembolsos = xls.parse('Desembolsos')
-    operaciones = xls.parse('Operaciones')
+    with _lock:
+        # Cargar el archivo Excel especificando el motor 'openpyxl'
+        xls = pd.ExcelFile(xls_path, engine='openpyxl')
+        desembolsos = xls.parse('Desembolsos')
+        operaciones = xls.parse('Operaciones')
 
     # Unir dataframes y calcular la columna 'Ano'
     merged_df = pd.merge(desembolsos, operaciones[['IDEtapa', 'FechaVigencia']], on='IDEtapa', how='left')
