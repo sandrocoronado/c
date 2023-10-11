@@ -1,10 +1,11 @@
-import streamlit as st
+ import streamlit as st
 import pandas as pd
 from streamlit.logger import get_logger
 import altair as alt
-import threading
 
 LOGGER = get_logger(__name__)
+import threading
+
 _lock = threading.Lock()
 
 def process_dataframe(xls_path):
@@ -26,13 +27,6 @@ def process_dataframe(xls_path):
     result_df['Monto Acumulado'] = result_df.groupby(['IDEtapa'])['Monto'].cumsum().reset_index(drop=True)
     result_df['Porcentaje del Monto'] = result_df.groupby(['IDEtapa'])['Monto'].apply(lambda x: x / x.sum() * 100).reset_index(drop=True)
     result_df['Porcentaje del Monto Acumulado'] = result_df.groupby(['IDEtapa'])['Monto Acumulado'].apply(lambda x: x / x.max() * 100).reset_index(drop=True)
-
-    # Calcular Monto Total por IDEtapa
-    total_monto_per_etapa = merged_df.groupby('IDEtapa')['Monto'].sum().reset_index()
-    total_monto_per_etapa.rename(columns={'Monto': 'Monto Total IDEtapa'}, inplace=True)
-
-    # Unir el monto total al dataframe result_df
-    result_df = pd.merge(result_df, total_monto_per_etapa, on='IDEtapa', how='left')
 
     # Asignar países
     country_map = {'AR': 'Argentina', 'BO': 'Bolivia', 'BR': 'Brasil', 'PY': 'Paraguay', 'UR': 'Uruguay'}
@@ -63,9 +57,10 @@ def run():
         # Create dataframes for the plots
         df_monto_acumulado = filtered_df.groupby('Ano')["Monto Acumulado"].last().reset_index()
         df_porcentaje_monto_acumulado = filtered_df.groupby('Ano')["Porcentaje del Monto Acumulado"].last().reset_index()
+        df_monto_total_etapa = filtered_df.groupby('Ano')['Monto Total IDEtapa'].first().reset_index()  # This will give us the total amount for each year
 
         # Concatenate the dataframes into a single dataframe
-        combined_df = pd.concat([df_monto_acumulado, df_porcentaje_monto_acumulado["Porcentaje del Monto Acumulado"]], axis=1)
+        combined_df = pd.concat([df_monto_acumulado, df_porcentaje_monto_acumulado["Porcentaje del Monto Acumulado"], df_monto_total_etapa["Monto Total IDEtapa"]], axis=1)
 
         # Display the combined dataframe in Streamlit
         st.write(combined_df)
@@ -94,7 +89,7 @@ def run():
             y='Porcentaje del Monto Acumulado:Q',
             tooltip=['Ano', 'Porcentaje del Monto Acumulado']
         ).properties(
-            title=f'Monto Acumulado a través de los años para {selected_country}',
+            title=f'Porcentaje del Monto Acumulado a través de los años para {selected_country}',
             width=600,
             height=400
         )
