@@ -55,6 +55,7 @@ def run():
         filtered_df = result_df[result_df['IDEtapa'] == selected_country]
 
         # Create dataframes for the plots
+        df_monto = filtered_df.groupby('Ano')["Monto"].last().reset_index()
         df_monto_acumulado = filtered_df.groupby('Ano')["Monto Acumulado"].last().reset_index()
         df_porcentaje_monto_acumulado = filtered_df.groupby('Ano')["Porcentaje del Monto Acumulado"].last().reset_index()
 
