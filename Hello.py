@@ -1,4 +1,4 @@
- import streamlit as st
+import streamlit as st
 import pandas as pd
 from streamlit.logger import get_logger
 import altair as alt
@@ -82,7 +82,7 @@ def run():
         st.altair_chart(chart)
         # Plot the Monto Acumulado over the years using Altair
         data_to_plot = filtered_df.groupby('Ano')["Porcentaje del Monto Acumulado"].last().reset_index()
-        chart = alt.Chart(data_to_plot).mark_line(point=True).encode(
+        chart = alt.Chart(data_to_plot).mark_line(point=True, color = 'green').encode(
             x=alt.X('Ano:O',  # Tratamos 'Ano' como ordinal
             axis=alt.Axis(title='Año', labelAngle=0)  # Aquí ajustamos el ángulo de las etiquetas a 0
            ),
