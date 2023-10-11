@@ -1,56 +1,94 @@
-# Copyright (c) Streamlit Inc. (2018-2022) Snowflake Inc. (2022)
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
-import time
-
-import numpy as np
-
 import streamlit as st
-from streamlit.hello.utils import show_code
+import pandas as pd
+from streamlit.logger import get_logger
+import altair as alt
+import threading
 
+LOGGER = get_logger(__name__)
+_lock = threading.Lock()
 
-def plotting_demo():
-    progress_bar = st.sidebar.progress(0)
-    status_text = st.sidebar.empty()
-    last_rows = np.random.randn(1, 1)
-    chart = st.line_chart(last_rows)
+def process_dataframe_for_sector(xls_path):
+    with _lock:
+        xls = pd.ExcelFile(xls_path, engine='openpyxl')
+        desembolsos = xls.parse('Desembolsos')
+        operaciones = xls.parse('Operaciones')
 
-    for i in range(1, 101):
-        new_rows = last_rows[-1, :] + np.random.randn(5, 1).cumsum(axis=0)
-        status_text.text("%i%% Complete" % i)
-        chart.add_rows(new_rows)
-        progress_bar.progress(i)
-        last_rows = new_rows
-        time.sleep(0.05)
+    merged_df = pd.merge(desembolsos, operaciones[['IDEtapa', 'FechaVigencia', 'SECTOR']], on='IDEtapa', how='left')
+    merged_df['FechaEfectiva'] = pd.to_datetime(merged_df['FechaEfectiva'], dayfirst=True)
+    merged_df['FechaVigencia'] = pd.to_datetime(merged_df['FechaVigencia'], dayfirst=True)
+    merged_df['Ano'] = ((merged_df['FechaEfectiva'] - merged_df['FechaVigencia']).dt.days / 366).astype(int)
+    merged_df['Meses'] = ((merged_df['FechaEfectiva'] - merged_df['FechaVigencia']).dt.days / 30).astype(int)
+    
+    result_df = merged_df.groupby(['SECTOR', 'Ano', 'Meses', 'IDDesembolso'])['Monto'].sum().reset_index()
+    result_df['Monto Acumulado'] = result_df.groupby(['SECTOR'])['Monto'].cumsum().reset_index(drop=True)
+    result_df['Porcentaje del Monto'] = result_df.groupby(['SECTOR'])['Monto'].apply(lambda x: x / x.sum() * 100).reset_index(drop=True)
+    result_df['Porcentaje del Monto Acumulado'] = result_df.groupby(['SECTOR'])['Monto Acumulado'].apply(lambda x: x / x.max() * 100).reset_index(drop=True)
 
-    progress_bar.empty()
+    return result_df
 
-    # Streamlit widgets automatically run the script from top to bottom. Since
-    # this button is not connected to any other logic, it just causes a plain
-    # rerun.
-    st.button("Re-run")
+def run_for_sector():
+    st.set_page_config(
+        page_title="Desembolsos por Sector",
+        page_icon="🌍",
+    )
 
+    st.title("Análisis de Desembolsos por Sector 🌍")
+    st.write("Carga tu archivo Excel y explora las métricas relacionadas con los desembolsos por sector.")
 
-st.set_page_config(page_title="Plotting Demo", page_icon="📈")
-st.markdown("# Plotting Demo")
-st.sidebar.header("Plotting Demo")
-st.write(
-    """This demo illustrates a combination of plotting and animation with
-Streamlit. We're generating a bunch of random numbers in a loop for around
-5 seconds. Enjoy!"""
-)
+    uploaded_file = st.file_uploader("Carga tu Excel aquí", type="xlsx")
 
-plotting_demo()
+    if uploaded_file:
+        result_df = process_dataframe_for_sector(uploaded_file)
+        st.write(result_df)
 
-show_code(plotting_demo)
+        selected_sector = st.selectbox('Selecciona el Sector:', result_df['SECTOR'].unique())
+
+        filtered_df = result_df[result_df['SECTOR'] == selected_sector]
+
+        df_monto = filtered_df.groupby('Ano')["Monto"].mean().reset_index()
+        df_monto_acumulado = filtered_df.groupby('Ano')["Monto Acumulado"].mean().reset_index()
+        df_porcentaje_monto_acumulado = filtered_df.groupby('Ano')["Porcentaje del Monto Acumulado"].mean().reset_index()
+        df_porcentaje_monto_acumulado["Porcentaje del Monto Acumulado"] = df_porcentaje_monto_acumulado["Porcentaje del Monto Acumulado"].round(2)
+
+        combined_df = pd.concat([df_monto, df_monto_acumulado["Monto Acumulado"], df_porcentaje_monto_acumulado["Porcentaje del Monto Acumulado"]], axis=1)
+        st.write("Resumen de Datos:")
+        st.write(combined_df)
+
+        chart_monto = alt.Chart(df_monto).mark_line(point=True, color='blue').encode(
+            x=alt.X('Ano:O', axis=alt.Axis(title='Año', labelAngle=0)),
+            y='Monto:Q',
+            tooltip=['Ano', 'Monto']
+        ).properties(
+            title=f'Promedio de Monto por año para {selected_sector}',
+            width=600,
+            height=400
+        )
+        st.altair_chart(chart_monto, use_container_width=True)
+
+        chart_monto_acumulado = alt.Chart(df_monto_acumulado).mark_line(point=True, color='purple').encode(
+            x=alt.X('Ano:O', axis=alt.Axis(title='Año', labelAngle=0)),
+            y='Monto Acumulado:Q',
+            tooltip=['Ano', 'Monto Acumulado']
+        ).properties(
+            title=f'Promedio de Monto Acumulado por año para {selected_sector}',
+            width=600,
+            height=400
+        )
+        st.altair_chart(chart_monto_acumulado, use_container_width=True)
+
+        chart_porcentaje = alt.Chart(df_porcentaje_monto_acumulado).mark_line(point=True, color='green').encode(
+            x=alt.X('Ano:O', axis=alt.Axis(title='Año', labelAngle=0)),
+            y='Porcentaje del Monto Acumulado:Q',
+            tooltip=['Ano', 'Porcentaje del Monto Acumulado']
+        ).properties(
+            title=f'Promedio del Porcentaje del Monto Acumulado por año para {selected_sector}',
+            width=600,
+            height=400
+        )
+        st.altair_chart(chart_porcentaje, use_container_width=True)
+
+    st.sidebar.info("Selecciona un sector para visualizar las métricas.")
+
+if __name__ == "__main__":
+    run_for_sector()
+
