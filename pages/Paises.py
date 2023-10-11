@@ -18,14 +18,15 @@ def process_dataframe(xls_path):
     merged_df['FechaVigencia'] = pd.to_datetime(merged_df['FechaVigencia'], dayfirst=True)
     merged_df['Ano'] = ((merged_df['FechaEfectiva'] - merged_df['FechaVigencia']).dt.days / 366).astype(int)
     merged_df['Meses'] = ((merged_df['FechaEfectiva'] - merged_df['FechaVigencia']).dt.days / 30).astype(int)
-
+    
+    # Asignar países
+    country_map = {'AR': 'Argentina', 'BO': 'Bolivia', 'BR': 'Brasil', 'PY': 'Paraguay', 'UR': 'Uruguay'}
+    merged_df['Pais'] = merged_df['IDEtapa'].str[:2].map(country_map).fillna('Desconocido')
+    
     result_df = merged_df.groupby(['Pais', 'Ano', 'Meses', 'IDDesembolso'])['Monto'].sum().reset_index()
     result_df['Monto Acumulado'] = result_df.groupby(['Pais'])['Monto'].cumsum().reset_index(drop=True)
     result_df['Porcentaje del Monto'] = result_df.groupby(['Pais'])['Monto'].apply(lambda x: x / x.sum() * 100).reset_index(drop=True)
     result_df['Porcentaje del Monto Acumulado'] = result_df.groupby(['Pais'])['Monto Acumulado'].apply(lambda x: x / x.max() * 100).reset_index(drop=True)
-
-    country_map = {'AR': 'Argentina', 'BO': 'Bolivia', 'BR': 'Brasil', 'PY': 'Paraguay', 'UR': 'Uruguay'}
-    result_df['Pais'] = result_df['IDEtapa'].str[:2].map(country_map).fillna('Desconocido')
 
     return result_df
 
@@ -94,3 +95,4 @@ def run():
 
 if __name__ == "__main__":
     run()
+
