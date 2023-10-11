@@ -65,7 +65,41 @@ def run():
         # Display the combined dataframe in Streamlit
         st.write(combined_df)
 
-        # ... (rest of the code remains unchanged)
+        # Plot for Monto
+        chart_monto = alt.Chart(df_monto).mark_line(point=True, color='blue').encode(
+            x=alt.X('Ano:O', axis=alt.Axis(title='Año', labelAngle=0)),
+            y='Monto:Q',
+            tooltip=['Ano', 'Monto']
+        ).properties(
+            title=f'Monto por año para {selected_country}',
+            width=600,
+            height=400
+        )
+        st.altair_chart(chart_monto)
+
+        # Plot for Monto Acumulado
+        chart_monto_acumulado = alt.Chart(df_monto_acumulado).mark_line(point=True, color='purple').encode(
+            x=alt.X('Ano:O', axis=alt.Axis(title='Año', labelAngle=0)),
+            y='Monto Acumulado:Q',
+            tooltip=['Ano', 'Monto Acumulado']
+        ).properties(
+            title=f'Monto Acumulado por año para {selected_country}',
+            width=600,
+            height=400
+        )
+        st.altair_chart(chart_monto_acumulado)
+
+        # Plot for Porcentaje del Monto Acumulado
+        chart_porcentaje = alt.Chart(df_porcentaje_monto_acumulado).mark_line(point=True, color='green').encode(
+            x=alt.X('Ano:O', axis=alt.Axis(title='Año', labelAngle=0)),
+            y='Porcentaje del Monto Acumulado:Q',
+            tooltip=['Ano', 'Porcentaje del Monto Acumulado']
+        ).properties(
+            title=f'Porcentaje del Monto Acumulado por año para {selected_country}',
+            width=600,
+            height=400
+        )
+        st.altair_chart(chart_porcentaje)
 
     st.sidebar.success("Select a demo above.")
     st.markdown(
