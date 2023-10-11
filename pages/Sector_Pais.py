@@ -59,7 +59,17 @@ def run_for_sector_and_country():
         st.write("Resumen de Datos:")
         st.write(combined_df)
 
-        # ... (charts will remain the same, just changing the titles to reflect the sector and country) ...
+        # Gráfico de línea para la curva de desembolso
+        c = alt.Chart(combined_df).mark_line().encode(
+            x='Ano',
+            y='Monto Acumulado',
+            tooltip=['Ano', 'Monto Acumulado', 'Porcentaje del Monto Acumulado']
+        ).properties(
+            title=f"Curva de Desembolso para {selected_sector} en {selected_country}",
+            width=600,
+            height=400
+        )
+        st.altair_chart(c, use_container_width=True)
 
     st.sidebar.info("Selecciona un sector y un país para visualizar las métricas.")
 
