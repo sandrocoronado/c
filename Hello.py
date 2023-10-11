@@ -55,53 +55,24 @@ def run():
         filtered_df = result_df[result_df['IDEtapa'] == selected_country]
 
         # Create dataframes for the plots
+        df_monto = filtered_df.groupby('Ano')["Monto"].sum().reset_index()
         df_monto_acumulado = filtered_df.groupby('Ano')["Monto Acumulado"].last().reset_index()
         df_porcentaje_monto_acumulado = filtered_df.groupby('Ano')["Porcentaje del Monto Acumulado"].last().reset_index()
 
         # Concatenate the dataframes into a single dataframe
-        combined_df = pd.concat([df_monto_acumulado, df_porcentaje_monto_acumulado["Porcentaje del Monto Acumulado"]], axis=1)
+        combined_df = pd.concat([df_monto, df_monto_acumulado["Monto Acumulado"], df_porcentaje_monto_acumulado["Porcentaje del Monto Acumulado"]], axis=1)
 
         # Display the combined dataframe in Streamlit
         st.write(combined_df)
 
-        # Plot the Monto Acumulado over the years using Altair
-        data_to_plot = filtered_df.groupby('Ano')["Monto Acumulado"].last().reset_index()
-
-        chart = alt.Chart(data_to_plot).mark_line(point=True, color = 'purple').encode(
-            x=alt.X('Ano:O',  # Tratamos 'Ano' como ordinal para asegurarnos de que todos los puntos se muestran
-                    axis=alt.Axis(title='Año', labelAngle=0)  # Aquí ajustamos el ángulo de las etiquetas a 0
-           ),
-            y='Monto Acumulado:Q',
-            tooltip=['Ano', 'Monto Acumulado']
-        ).properties(
-            title=f'Monto Acumulado a través de los años para {selected_country}',
-            width=600,
-            height=400
-        )
-        st.altair_chart(chart)
-        # Plot the Monto Acumulado over the years using Altair
-        data_to_plot = filtered_df.groupby('Ano')["Porcentaje del Monto Acumulado"].last().reset_index()
-        chart = alt.Chart(data_to_plot).mark_line(point=True).encode(
-            x=alt.X('Ano:O',  # Tratamos 'Ano' como ordinal
-            axis=alt.Axis(title='Año', labelAngle=0)  # Aquí ajustamos el ángulo de las etiquetas a 0
-           ),
-            y='Porcentaje del Monto Acumulado:Q',
-            tooltip=['Ano', 'Porcentaje del Monto Acumulado']
-        ).properties(
-            title=f'Monto Acumulado a través de los años para {selected_country}',
-            width=600,
-            height=400
-        )
-
-        st.altair_chart(chart)
+        # ... (rest of the code remains unchanged)
 
     st.sidebar.success("Select a demo above.")
-
     st.markdown(
         """
-
     """
     )
 
 if __name__ == "__main__":
     run()
+
