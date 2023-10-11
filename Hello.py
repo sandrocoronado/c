@@ -57,7 +57,7 @@ def run():
         # Create dataframes for the plots
         df_monto_acumulado = filtered_df.groupby('Ano')["Monto Acumulado"].last().reset_index()
         df_porcentaje_monto_acumulado = filtered_df.groupby('Ano')["Porcentaje del Monto Acumulado"].last().reset_index()
-        df_monto_total_etapa = filtered_df.groupby('Ano')['Monto Total IDEtapa'].first().reset_index()  # This will give us the total amount for each year
+        df_monto_total_etapa = filtered_df.groupby('Ano')['Monto'].first().reset_index()  # This will give us the total amount for each year
 
         # Concatenate the dataframes into a single dataframe
         combined_df = pd.concat([df_monto_acumulado, df_porcentaje_monto_acumulado["Porcentaje del Monto Acumulado"], df_monto_total_etapa["Monto Total IDEtapa"]], axis=1)
