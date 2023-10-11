@@ -19,7 +19,7 @@ def process_dataframe(xls_path):
     merged_df = pd.merge(desembolsos, operaciones[['IDEtapa', 'FechaVigencia']], on='IDEtapa', how='left')
     merged_df['FechaEfectiva'] = pd.to_datetime(merged_df['FechaEfectiva'], dayfirst=True)
     merged_df['FechaVigencia'] = pd.to_datetime(merged_df['FechaVigencia'], dayfirst=True)
-    merged_df['Ano'] = ((merged_df['FechaEfectiva'] - merged_df['FechaVigencia']).dt.days / 365).astype(int)
+    merged_df['Ano'] = ((merged_df['FechaEfectiva'] - merged_df['FechaVigencia']).dt.days / 366).astype(int)
     merged_df['Meses'] = ((merged_df['FechaEfectiva'] - merged_df['FechaVigencia']).dt.days / 30).astype(int)
 
     # Calcular montos agrupados y montos acumulados incluyendo IDDesembolso
@@ -49,7 +49,7 @@ def run():
         st.write(result_df)
 
         # Create a dropdown selectbox to select the country
-        selected_country = st.selectbox('Choose a country:', result_df['IDEtapa'].unique())
+        selected_country = st.selectbox('Selecciona el Proyecto:', result_df['IDEtapa'].unique())
 
         # Filter the dataframe based on the selected country
         filtered_df = result_df[result_df['IDEtapa'] == selected_country]
@@ -99,13 +99,15 @@ def run():
             width=600,
             height=400
         )
-        st.altair_chart(chart_porcentaje)
+        st.write("Resumen de Datos:")
+        st.write(combined_df)
 
-    st.sidebar.success("Select a demo above.")
-    st.markdown(
-        """
-    """
-    )
+        st.write("Visualizaciones:")
+        st.altair_chart(chart_monto, use_container_width=True)
+        st.altair_chart(chart_monto_acumulado, use_container_width=True)
+        st.altair_chart(chart_porcentaje, use_container_width=True)
+
+    st.sidebar.info("Selecciona un proyecto para visualizar las métricas.")
 
 if __name__ == "__main__":
     run()
