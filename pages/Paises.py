@@ -37,8 +37,8 @@ def get_table_download_link(df, filename="data.xlsx", text="Download Excel file"
     downloaded_file = df.to_excel(towrite, encoding='utf-8', index=False, engine='openpyxl')
     towrite.seek(0)  
     b64 = base64.b64encode(towrite.read()).decode()  
-    href = f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" download="{filename}">{text}</a>'
-    return href
+    button_html = f"""<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" download="{filename}" class="streamlit-btn primary-button">{text}</a>"""
+    return button_html
 
 def run():
     st.set_page_config(
@@ -55,8 +55,10 @@ def run():
         result_df = process_dataframe(uploaded_file)
         st.write(result_df)
 
-        selected_country = st.selectbox('Selecciona el País:', result_df['Pais'].unique())
+        # Añadir el botón de descarga después de mostrar el dataframe
+        st.markdown(get_table_download_link(result_df), unsafe_allow_html=True)
 
+        selected_country = st.selectbox('Selecciona el País:', result_df['Pais'].unique())
         filtered_df = result_df[result_df['Pais'] == selected_country]
 
         df_monto = filtered_df.groupby('Ano')["Monto"].mean().reset_index()
@@ -105,4 +107,5 @@ def run():
 
 if __name__ == "__main__":
     run()
+
 
