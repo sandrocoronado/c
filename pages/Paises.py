@@ -3,6 +3,8 @@ import pandas as pd
 from streamlit.logger import get_logger
 import altair as alt
 import threading
+import base64
+import io
 
 LOGGER = get_logger(__name__)
 _lock = threading.Lock()
@@ -29,6 +31,14 @@ def process_dataframe(xls_path):
     result_df['Porcentaje del Monto Acumulado'] = result_df.groupby(['Pais'])['Monto Acumulado'].apply(lambda x: x / x.max() * 100).reset_index(drop=True)
 
     return result_df
+
+def get_table_download_link(df, filename="data.xlsx", text="Download Excel file"):
+    towrite = io.BytesIO()
+    downloaded_file = df.to_excel(towrite, encoding='utf-8', index=False, engine='openpyxl')
+    towrite.seek(0)  
+    b64 = base64.b64encode(towrite.read()).decode()  
+    href = f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" download="{filename}">{text}</a>'
+    return href
 
 def run():
     st.set_page_config(
