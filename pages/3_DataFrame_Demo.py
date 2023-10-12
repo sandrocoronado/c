@@ -1,16 +1,22 @@
 import io
 import base64
-import altair as alt
 import pandas as pd
 import streamlit as st
+import altair as alt
 
 def get_table_download_link(df, filename="data.xlsx", text="Download Excel file"):
     towrite = io.BytesIO()
-    df.to_excel(towrite, index=False, engine='openpyxl')
+    downloaded_file = df.to_excel(towrite, encoding='utf-8', index=False, engine='openpyxl')
     towrite.seek(0)  
     b64 = base64.b64encode(towrite.read()).decode()  
     button_html = f"""<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" download="{filename}" class="streamlit-btn primary-button">{text}</a>"""
     return button_html
+
+def process_dataframe(uploaded_file):
+    """Procesa el archivo Excel y devuelve un DataFrame de pandas."""
+    df = pd.read_excel(uploaded_file)
+    # Aquí puedes agregar cualquier otro procesamiento que necesites hacer en el DataFrame.
+    return df
 
 def run():
     st.set_page_config(
@@ -79,3 +85,4 @@ def run():
 
 if __name__ == "__main__":
     run()
+
