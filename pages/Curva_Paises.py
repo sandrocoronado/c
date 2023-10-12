@@ -77,7 +77,7 @@ def run():
         df_porcentaje_monto_acumulado["Porcentaje del Monto Acumulado"] = df_porcentaje_monto_acumulado["Porcentaje del Monto Acumulado"].round(2)
 
         combined_df = pd.merge(df_monto, df_desembolsos_count, on='Ano')
-        combined_df = pd.concat([combined_df, df_monto_promedio["Promedio de Monto"],df_monto_acumulado["Monto Acumulado"], df_porcentaje_monto_acumulado["Porcentaje del Monto Acumulado"]], axis=1)
+        combined_df = pd.concat([combined_df, df_monto_promedio["Promedio de Monto"],df_monto_acumulado["Promedio de Monto Acumulado"], df_porcentaje_monto_acumulado["Porcentaje del Monto Acumulado"]], axis=1)
         st.write("Resumen de Datos:")
         st.write(combined_df)
 
