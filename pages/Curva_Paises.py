@@ -20,7 +20,6 @@ def process_dataframe(xls_path):
     merged_df['Ano'] = ((merged_df['FechaEfectiva'] - merged_df['FechaVigencia']).dt.days / 366).astype(int)
     merged_df['Meses'] = ((merged_df['FechaEfectiva'] - merged_df['FechaVigencia']).dt.days / 30).astype(int)
 
-    # Asignar países
     country_map = {'AR': 'Argentina', 'BO': 'Bolivia', 'BR': 'Brasil', 'PY': 'Paraguay', 'UR': 'Uruguay'}
     merged_df['Pais'] = merged_df['IDEtapa'].str[:2].map(country_map).fillna('Desconocido')
 
@@ -32,9 +31,6 @@ def process_dataframe(xls_path):
     return result_df
 
 def dataframe_to_excel_bytes(df):
-    """
-    Convert a DataFrame into a BytesIO object containing Excel data.
-    """
     output = io.BytesIO()
     with pd.ExcelWriter(output, engine='openpyxl') as writer:
         df.to_excel(writer, sheet_name='Resultados', index=False)
@@ -56,7 +52,6 @@ def run():
         result_df = process_dataframe(uploaded_file)
         st.write(result_df)
         
-        # Permitir la descarga del DataFrame como archivo Excel
         excel_bytes = dataframe_to_excel_bytes(result_df)
         st.download_button(
             label="Descargar resultados como Excel",
@@ -73,20 +68,22 @@ def run():
         df_monto_promedio = filtered_df.groupby('Ano')["Monto"].mean().reset_index(name='Promedio de Monto').round(2)
         df_desembolsos_count = filtered_df.groupby('Ano').size().reset_index(name='Cantidad Desembolsos')
         df_monto_acumulado = filtered_df.groupby('Ano')["Monto Acumulado"].mean().reset_index(name='Promedio de Monto Acumulado').round(2)
-        df_porcentaje_monto_acumulado = filtered_df.groupby('Ano')["Porcentaje del Monto Acumulado"].mean().reset_index()
-        df_porcentaje_monto_acumulado["Porcentaje del Monto Acumulado"] = df_porcentaje_monto_acumulado["Porcentaje del Monto Acumulado"].round(2)
+        df_porcentaje_monto_acumulado = filtered_df.groupby('Ano')["Porcentaje del Monto Acumulado"].mean().reset_index(name='Porcentaje del Monto Acumulado').round(2)
 
         combined_df = pd.merge(df_monto, df_desembolsos_count, on='Ano')
-        combined_df = pd.concat([combined_df, df_monto['Suma de Monto'], df_monto_promedio["Promedio de Monto"],df_monto_acumulado["Promedio de Monto Acumulado"], df_porcentaje_monto_acumulado["Porcentaje del Monto Acumulado"]], axis=1)
+        combined_df = pd.merge(combined_df, df_monto_promedio, on='Ano')
+        combined_df = pd.merge(combined_df, df_monto_acumulado, on='Ano')
+        combined_df = pd.merge(combined_df, df_porcentaje_monto_acumulado, on='Ano')
+        
         st.write("Resumen de Datos:")
         st.write(combined_df)
 
         chart_monto = alt.Chart(df_monto).mark_line(point=True, color='blue').encode(
             x=alt.X('Ano:O', axis=alt.Axis(title='Año', labelAngle=0)),
-            y='Monto:Q',
-            tooltip=['Ano', 'Monto']
+            y='Suma de Monto:Q',
+            tooltip=['Ano', 'Suma de Monto']
         ).properties(
-            title=f'Promedio de Monto por año para {selected_country}',
+            title=f'Suma de Monto por año para {selected_country}',
             width=600,
             height=400
         )
@@ -94,8 +91,8 @@ def run():
 
         chart_monto_acumulado = alt.Chart(df_monto_acumulado).mark_line(point=True, color='purple').encode(
             x=alt.X('Ano:O', axis=alt.Axis(title='Año', labelAngle=0)),
-            y='Monto Acumulado:Q',
-            tooltip=['Ano', 'Monto Acumulado']
+            y='Promedio de Monto Acumulado:Q',
+            tooltip=['Ano', 'Promedio de Monto Acumulado']
         ).properties(
             title=f'Promedio de Monto Acumulado por año para {selected_country}',
             width=600,
@@ -118,5 +115,7 @@ def run():
 
 if __name__ == "__main__":
     run()
+
+
 
 
