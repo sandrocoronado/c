@@ -57,9 +57,9 @@ def run():
         filtered_df = result_df[result_df['IDEtapa'] == selected_country]
 
         # Create dataframes for the plots
-        df_monto = filtered_df.groupby('Ano')["Monto"].sum().roudn(2).reset_index()
-        df_monto_acumulado = filtered_df.groupby('Ano')["Monto Acumulado"].last().round(2).reset_index()
-        df_porcentaje_monto_acumulado = filtered_df.groupby('Ano')["Porcentaje del Monto Acumulado"].last().round(2).reset_index()
+        df_monto = filtered_df.groupby('Ano')["Monto"].sum().reset_index()
+        df_monto_acumulado = filtered_df.groupby('Ano')["Monto Acumulado"].last().reset_index()
+        df_porcentaje_monto_acumulado = filtered_df.groupby('Ano')["Porcentaje del Monto Acumulado"].last().reset_index()
         df_porcentaje_monto_acumulado["Porcentaje del Monto Acumulado"] = df_porcentaje_monto_acumulado["Porcentaje del Monto Acumulado"].round(2)
 
         # Concatenate the dataframes into a single dataframe
