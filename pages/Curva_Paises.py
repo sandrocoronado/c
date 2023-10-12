@@ -69,9 +69,9 @@ def run():
 
         filtered_df = result_df[result_df['Pais'] == selected_country]
 
-        df_monto = filtered_df.groupby('Ano')["Monto"].mean().reset_index()
+        df_monto = filtered_df.groupby('Ano')["Monto"].mean().reset_index().round(2)
         df_desembolsos_count = filtered_df.groupby('Ano').size().reset_index(name='Cantidad Desembolsos')
-        df_monto_acumulado = filtered_df.groupby('Ano')["Monto Acumulado"].mean().reset_index()
+        df_monto_acumulado = filtered_df.groupby('Ano')["Monto Acumulado"].mean().reset_index().round(2)
         df_porcentaje_monto_acumulado = filtered_df.groupby('Ano')["Porcentaje del Monto Acumulado"].mean().reset_index()
         df_porcentaje_monto_acumulado["Porcentaje del Monto Acumulado"] = df_porcentaje_monto_acumulado["Porcentaje del Monto Acumulado"].round(2)
 
