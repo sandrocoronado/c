@@ -14,20 +14,20 @@ def process_dataframe(xls_path):
         desembolsos = xls.parse('Desembolsos')
         operaciones = xls.parse('Operaciones')
 
-    merged_df = pd.merge(desembolsos, operaciones[['IDEtapa', 'FechaVigencia']], on='IDEtapa', how='left')
+    merged_df = pd.merge(desembolsos, operaciones[['IDEtapa', 'FechaVigencia', 'AporteFonplata']], on='IDEtapa', how='left')
     merged_df['FechaEfectiva'] = pd.to_datetime(merged_df['FechaEfectiva'], dayfirst=True)
     merged_df['FechaVigencia'] = pd.to_datetime(merged_df['FechaVigencia'], dayfirst=True)
     merged_df['Ano'] = ((merged_df['FechaEfectiva'] - merged_df['FechaVigencia']).dt.days / 366).astype(int)
     merged_df['Meses'] = ((merged_df['FechaEfectiva'] - merged_df['FechaVigencia']).dt.days / 30).astype(int)
 
+    result_df = merged_df.groupby(['IDEtapa', 'Ano', 'Meses', 'IDDesembolso', 'AporteFonplata'])['Monto'].sum().reset_index()
+    result_df['Monto Acumulado'] = result_df.groupby(['IDEtapa'])['Monto'].cumsum().reset_index(drop=True)
+    result_df['Porcentaje del Monto'] = result_df['Monto'] / result_df['AporteFonplata'] * 100
+    result_df['Porcentaje del Monto Acumulado'] = result_df['Monto Acumulado'] / result_df['AporteFonplata'] * 100
+
     country_map = {'AR': 'Argentina', 'BO': 'Bolivia', 'BR': 'Brasil', 'PY': 'Paraguay', 'UR': 'Uruguay'}
-    merged_df['Pais'] = merged_df['IDEtapa'].str[:2].map(country_map).fillna('Desconocido')
-
-    result_df = merged_df.groupby(['Pais', 'Ano', 'Meses', 'IDDesembolso'])['Monto'].sum().reset_index()
-    result_df['Monto Acumulado'] = result_df.groupby(['Pais'])['Monto'].cumsum().reset_index(drop=True)
-    result_df['Porcentaje del Monto'] = result_df.groupby(['Pais'])['Monto'].apply(lambda x: x / x.sum() * 100).reset_index(drop=True)
-    result_df['Porcentaje del Monto Acumulado'] = result_df.groupby(['Pais'])['Monto Acumulado'].apply(lambda x: x / x.max() * 100).reset_index(drop=True)
-
+    result_df['Pais'] = result_df['IDEtapa'].str[:2].map(country_map).fillna('Desconocido')
+    
     return result_df
 
 def dataframe_to_excel_bytes(df):
@@ -50,15 +50,6 @@ def run():
 
     if uploaded_file:
         result_df = process_dataframe(uploaded_file)
-        st.write(result_df)
-        
-        excel_bytes = dataframe_to_excel_bytes(result_df)
-        st.download_button(
-            label="Descargar resultados como Excel",
-            data=excel_bytes,
-            file_name="resultados_desembolsos.xlsx",
-            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        )
 
         selected_country = st.selectbox('Selecciona el País:', result_df['Pais'].unique())
 
@@ -77,6 +68,14 @@ def run():
         
         st.write("Resumen de Datos:")
         st.write(combined_df)
+
+        excel_bytes = dataframe_to_excel_bytes(combined_df)
+        st.download_button(
+            label="Descargar resultados como Excel",
+            data=excel_bytes,
+            file_name="resultados_desembolsos.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
 
         chart_monto = alt.Chart(df_monto).mark_line(point=True, color='blue').encode(
             x=alt.X('Ano:O', axis=alt.Axis(title='Año', labelAngle=0)),
@@ -115,6 +114,7 @@ def run():
 
 if __name__ == "__main__":
     run()
+
 
 
 
