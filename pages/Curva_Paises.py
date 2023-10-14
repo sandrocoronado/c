@@ -30,12 +30,6 @@ def process_dataframe(xls_path):
     
     return result_df
 
-def dataframe_to_excel_bytes(df):
-    output = io.BytesIO()
-    with pd.ExcelWriter(output, engine='openpyxl') as writer:
-        df.to_excel(writer, sheet_name='Resultados', index=False)
-    output.seek(0)
-    return output
 
 def run():
     st.set_page_config(
@@ -50,6 +44,15 @@ def run():
 
     if uploaded_file:
         result_df = process_dataframe(uploaded_file)
+        st.write(result_df)
+        
+        excel_bytes = dataframe_to_excel_bytes(result_df)
+        st.download_button(
+            label="Descargar resultados como Excel",
+            data=excel_bytes,
+            file_name="resultados_desembolsos.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
 
         selected_country = st.selectbox('Selecciona el País:', result_df['Pais'].unique())
 
@@ -69,13 +72,12 @@ def run():
         st.write("Resumen de Datos:")
         st.write(combined_df)
 
-        excel_bytes = dataframe_to_excel_bytes(combined_df)
-        st.download_button(
-            label="Descargar resultados como Excel",
-            data=excel_bytes,
-            file_name="resultados_desembolsos.xlsx",
-            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        )
+        def dataframe_to_excel_bytes(df):
+            output = io.BytesIO()
+            with pd.ExcelWriter(output, engine='openpyxl') as writer:
+            combined_df.to_excel(writer, sheet_name='Resultados', index=False)
+            output.seek(0)
+            return output
 
         chart_monto = alt.Chart(df_monto).mark_line(point=True, color='blue').encode(
             x=alt.X('Ano:O', axis=alt.Axis(title='Año', labelAngle=0)),
@@ -114,7 +116,6 @@ def run():
 
 if __name__ == "__main__":
     run()
-
 
 
 
