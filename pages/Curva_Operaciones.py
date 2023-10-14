@@ -29,6 +29,13 @@ def process_dataframe(xls_path):
     
     return result_df
 
+def dataframe_to_excel_bytes(df):
+    output = io.BytesIO()
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        df.to_excel(writer, sheet_name='Resultados', index=False)
+    output.seek(0)
+    return output
+
 def run():
     st.set_page_config(
         page_title="Desembolsos",
