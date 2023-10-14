@@ -71,13 +71,7 @@ def run():
         
         st.write("Resumen de Datos:")
         st.write(combined_df)
-
-        def dataframe_to_excel_bytes(df):
-            output = io.BytesIO()
-            with pd.ExcelWriter(output, engine='openpyxl') as writer:
-            combined_df.to_excel(writer, sheet_name='Resultados', index=False)
-            output.seek(0)
-            return output
+        
 
         chart_monto = alt.Chart(df_monto).mark_line(point=True, color='blue').encode(
             x=alt.X('Ano:O', axis=alt.Axis(title='Año', labelAngle=0)),
