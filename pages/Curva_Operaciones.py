@@ -3,6 +3,7 @@ import pandas as pd
 from streamlit.logger import get_logger
 import altair as alt
 import threading
+import io  # <-- Importa io
 
 LOGGER = get_logger(__name__)
 _lock = threading.Lock()
@@ -49,6 +50,16 @@ def run():
     if uploaded_file:
         result_df = process_dataframe(uploaded_file)
         st.write(result_df)
+        
+        # Convertir el DataFrame a bytes y agregar botón de descarga
+        excel_bytes = dataframe_to_excel_bytes(result_df)
+        st.download_button(
+            label="Descargar DataFrame en Excel",
+            data=excel_bytes,
+            file_name="resultados_desembolsos.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+        
         selected_country = st.selectbox('Selecciona el Proyecto:', result_df['IDEtapa'].unique())
         filtered_df = result_df[result_df['IDEtapa'] == selected_country]
         df_monto = filtered_df.groupby('Ano')["Monto"].sum().reset_index()
@@ -93,4 +104,5 @@ def run():
 
 if __name__ == "__main__":
     run()
+
 
